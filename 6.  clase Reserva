@@ -1,0 +1,64 @@
+# Una clase Reserva que integre cliente, servicio, duración y estado,
+e implemente confirmación, cancelación y procesamiento con
+manejo de excepciones.
+
+class Reserva(EntidadSistema):
+
+    ESTADOS_VALIDOS = ("PENDIENTE", "CONFIRMADA", "CANCELADA", "PROCESADA")
+
+    def __init__(self, id_reserva: str, cliente: Cliente, servicio: Servicio, duracion_horas: int):
+        super().__init__(id_reserva)
+        
+        if not isinstance(cliente, Cliente):
+            raise DatoInvalidoError("Se requiere un objeto Cliente para crear la reserva.")
+        if not isinstance(servicio, Servicio):
+            raise DatoInvalidoError("Se requiere un objeto Servicio  para crear la reserva.")
+        if not servicio.disponible:
+            raise ServicioNoDisponibleError(f"El servicio '{servicio.nombre}' no está disponible.")
+
+        servicio.validar_parametros(duracion_horas)
+
+        self.cliente = cliente
+        self.servicio = servicio
+        self.duracion_horas = duracion_horas
+        self._estado = "PENDIENTE"
+
+        self.costo_total = self.servicio.calcular_total(duracion_horas)
+
+    def estado(self) -> str:
+        return self._estado
+
+    def confirmar(self) -> Name:
+        """La  reserva de PENDIENTE a CONFIRMADA y descuenta stock si aplica."""
+        if self._estado != "PENDIENTE":
+            raise OperacionNoPermitidaError(
+                f"No se puede confirmar la reserva '{self.id}' porque su estado actual es '{self._estado}'."
+            )
+        
+        if isinstance(self.servicio, AlquilerEquipo):
+            if self.servicio.stock <= 0:
+                raise ServicioNoDisponibleError(
+                    f"No hay unidades disponibles de '{self.servicio.nombre}' para confirmar."
+                )
+            self.servicio.stock -= 1
+            if self.servicio.stock == 0:
+                self.servicio.disponible = False
+
+        self._estado = "CONFIRMADA"
+
+    def cancelar(self) -> None:
+        """Cancela la reserva si no ha sido procesada y libera inventario si estaba confirmada."""
+        if self._estado in ("CANCELADA", "PROCESADA"):
+            raise OperacionNoPermitidaError(
+                f"Operación denegada: una reserva en estado '{self._estado}' no puede cancelarse."
+            )
+
+        self._estado = "CANCELADA"
+
+    def procesar(self) -> Name:
+        """Finaliza y factura la reserva; exige confirmación previa."""
+        if self._estado != "CONFIRMADA":
+            raise OperacionNoPermitidaError(
+                f"Solo se pueden procesar reservas CONFIRMADAS (estado actual: '{self._estado}')."
+            )
+ 
