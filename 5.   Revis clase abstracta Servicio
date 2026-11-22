@@ -1,0 +1,123 @@
+# Una clase abstracta Servicio y al menos tres servicios
+especializados que hereden de ella, implementando polimorfismo y
+métodos sobrescritos para calcular costos, describir servicios y
+validar parámetros.
+
+class Servicio(EntidadSistema, ABC):
+    """Clase base abstracta para los servicios de Software FJ."""
+    def __init__(self, id_servicio: str, nombre: str, tarifa_base: float, disponible: bool = True):
+        super().__init__(id_servicio)
+        if not nombre:
+            raise ParametroFaltanteError("El nombre del servicio es obligatorio.")
+        if tarifa_base <= 0:
+            raise DatoInvalidoError("La tarifa base debe ser mayor a cero.")
+        self._nombre = nombre.strip()
+        self._tarifa_base = float(tarifa_base)
+        self._disponible = disponible
+
+    def nombre(self) -> str:
+        return self._nombre
+
+    def tarifa_base(self) -> float:
+        return self._tarifa_base
+
+    def disponible(self) -> bool:
+        return self._disponible
+
+    def disponible(self, estado: bool):
+        self._disponible = bool(estado)
+
+    def validar_parametros(self, duracion_horas: int) -> None:
+        pass
+
+    def calcular_costo_base(self, duracion_horas: int) -> float:
+        pass
+
+    # --- SOBRECARGA DE MÉTODOS ---
+
+    def calcular_total(self, duracion: int, impuesto: float = 0.19, descuento: float = 0.0) -> float:
+        """Variante 1: Recibe argumentos numéricos individuales y opcionales."""
+        self.validar_parametros(duracion)
+        if not (0 <= descuento <= 0.5):
+            raise DatoInvalidoError("El descuento debe estar entre 0.0 y 0.5.")
+        
+        subtotal = self.calcular_costo_base(duracion)
+        total = (subtotal * (1 - descuento)) * (1 + impuesto)
+        
+        if total <= 0:
+            raise CalculoInconsistenteError("El cálculo total arrojó un valor no positivo.")
+        return round(total, 2)
+
+    @calcular_total.register
+    def _(self, configuracion: dict) -> float:
+        """Variante 2 (Sobrecargada): Recibe un diccionario de configuración."""
+        if "duracion" not in configuracion:
+            raise ParametroFaltanteError("Falta la clave 'duracion' en el diccionario.")
+        return self.calcular_total(
+            configuracion["duracion"],
+            configuracion.get("impuesto", 0.19),
+            configuracion.get("descuento", 0.0)
+        )
+
+
+class ReservaSala(Servicio):
+    def __init__(self, id_servicio: str, nombre: str, tarifa_base: float, capacidad: int, tiene_proyector: bool = True):
+        super().__init__(id_servicio, nombre, tarifa_base)
+        if capacidad <= 0:
+            raise DatoInvalidoError("La capacidad debe ser mayor a 0.")
+        self.capacidad = capacidad
+        self.tiene_proyector = tiene_proyector
+
+    def validar_parametros(self, duracion_horas: int) -> None:
+        if not isinstance(duracion_horas, int) or not (1 <= duracion_horas <= 12):
+            raise DatoInvalidoError("Las salas se reservan entre 1 y 12 horas.")
+
+    def calcular_costo_base(self, duracion_horas: int) -> float:
+        recargo = 15.0 if self.tiene_proyector else 0.0
+        return (self.tarifa_base * duracion_horas) + recargo
+
+    def obtener_resumen(self) -> str:
+        return f"Sala [{self.id}] '{self.nombre}' (Cap: {self.capacidad}) - ${self.tarifa_base}/h"
+
+
+class AlquilerEquipo(Servicio):
+    def __init__(self, id_servicio: str, nombre: str, tarifa_base: float, stock: int, gama: str = "Alta"):
+        super().__init__(id_servicio, nombre, tarifa_base, disponible=(stock > 0))
+        if stock < 0:
+            raise DatoInvalidoError("El stock no puede ser negativo.")
+        self.stock = stock
+        self.gama = gama
+
+    def validar_parametros(self, duracion_horas: int) -> None:
+        if self.stock <= 0:
+            raise ServicioNoDisponibleError(f"Sin stock disponible para '{self.nombre}'.")
+        if not isinstance(duracion_horas, int) or duracion_horas < 4:
+            raise DatoInvalidoError("El alquiler mínimo de equipos es de 4 horas.")
+
+    def calcular_costo_base(self, duracion_horas: int) -> float:
+        factor = 0.90 if duracion_horas >= 24 else 1.0
+        return (self.tarifa_base * duracion_horas) * factor
+
+    def obtener_resumen(self) -> str:
+        return f"Equipo [{self.id}] '{self.nombre}' (Stock: {self.stock}) - ${self.tarifa_base}/h"
+
+
+class AsesoriaEspecializada(Servicio):
+    def __init__(self, id_servicio: str, nombre: str, tarifa_base: float, especialidad: str, senior: bool = True):
+        super().__init__(id_servicio, nombre, tarifa_base)
+        if not especialidad:
+            raise ParametroFaltanteError("Debe indicar la especialidad.")
+        self.especialidad = especialidad
+        self.senior = senior
+
+    def validar_parametros(self, duracion_horas: int) -> None:
+        if not isinstance(duracion_horas, int) or duracion_horas <= 0:
+            raise DatoInvalidoError("La duración de la asesoría debe ser mayor a 0.")
+
+    def calcular_costo_base(self, duracion_horas: int) -> float:
+        multiplicador = 1.25 if self.senior else 1.0
+        return (self.tarifa_base * duracion_horas) * multiplicador
+
+    def obtener_resumen(self) -> str:
+        nivel = "Senior" if self.senior else "Semi-Senior"
+        return f"Asesoría [{self.id}] '{self.nombre}' ({self.especialidad} - {nivel}) - ${self.tarifa_base}/h"
