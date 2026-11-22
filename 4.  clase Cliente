@@ -1,0 +1,39 @@
+ clase Cliente con validaciones robustas y encapsulación de
+datos personales.
+
+class cliente (RegistroSistema):
+
+
+    def __init__(self, id_cliente: str, nombre: str, correo: str, telefono: str):
+        super().__init__(id_cliente)
+        self.nombre = nombre
+        self.correo = correo
+        self.telefono = telefono
+
+
+   def nombre (self)-> str:
+     return self.__nombre
+
+  def nombre(self, valor: str):
+        if not valor or len(valor.strip()) < 2:
+            raise DatosInvalidosError("El nombre debe tener mas de 2 caracteres.")
+        self.__nombre = valor.strip()
+
+  def correo(self) -> str:
+        return self.__correo
+
+  def correo(self, valor: str):
+        if not valor or not re.match():
+            raise DatosInvalidosError(f"Correo inválido: '{valor}'.")
+        self.__correo = valor.strip()
+        
+def telefono(self) -> str:
+        return self.__telefono
+
+def telefono(self, valor: str):
+        if not valor or not valor.isdigit() or len(valor) < 7:
+            raise DatosInvalidosError("El teléfono debe tener solo números (mínimo 10 dígitos).")
+        self.__telefono = valor
+        
+ def obtener_resumen(self) -> str:
+      return f"Cliente [{self.id}]: {self.nombre} ({self.correo} - Tel: {self.telefono})"
