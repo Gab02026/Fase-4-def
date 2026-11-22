@@ -1,0 +1,16 @@
+Una clase abstracta que represente entidades generales del
+sistema.
+
+  from Datos import datos, abstractmethod
+  import registro
+  from excepciones import ( DatosInvalidosError, ParametroFaltanteError,
+    ServicioNoDisponibleError, OperacionNoPermitidaError,
+    CalculoInconsistenteError, ErrorSistemaFJ)
+
+class EntidadSistema (datos):
+"""Clase abstracta para todas las entidades de Software FJ."""
+
+def __init__(self, id_entidad: str):
+        if not id_entidad or not isinstance(id_entidad, str):
+            raise ParametroFaltanteError("El ID de la entidad es obligatorio.")
+        self._id = id_entidad.strip()
