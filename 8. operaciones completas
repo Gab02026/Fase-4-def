@@ -1,0 +1,85 @@
+# El sistema, sin utilizar ningún motor de base de datos, debe simular al
+menos 10 operaciones completas, incluyendo registros válidos e
+inválidos de clientes, creación correcta e incorrecta de servicios, y
+reservas exitosas y fallidas
+
+from modelos import Cliente, ReservaSala, AlquilerEquipo, AsesoriaEspecializada
+from gestor import GestorSoftwareFJ
+from excepciones import ErrorSoftwareFJ
+
+def ejecutar_simulacion():
+    sistema = GestorSoftwareFJ()
+    print("=================================================================")
+    print("   SIMULACIÓN DE 10 OPERACIONES COMPLETAS - SOFTWARE FJ")
+    print("=================================================================\n")
+
+    # [OPERACIÓN 1] Registro de Cliente 1
+    try:
+        c1 = Cliente("CLI-01", "Laura Mendoza", "laura.mendoza@tech.co", "3104567890")
+        sistema.registrar_cliente(c1)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 1")
+
+    # [OPERACIÓN 2] Registro de Cliente 2
+    try:
+        c2 = Cliente("CLI-02", "Carlos Gómez", "cgomez@empresa.com", "6017894512")
+        sistema.registrar_cliente(c2)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 2")
+
+    # [OPERACIÓN 3] Registro INVÁLIDO de Cliente (Correo sin '@' y teléfono corto)
+    try:
+        c_invalido = Cliente("CLI-03", "Ana", "correo-sin-arroba.com", "123")
+        sistema.registrar_cliente(c_invalido)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 3 - Cliente Inválido")
+        print(f"[ERROR CONTROLADO OP-3] Cliente rechazado: {e}")
+
+    # SERVICIOS (Correctos e Incorrectos)
+
+    # [OPERACIÓN 4] Creación correcta de Servicio 1: Reserva de Sala
+    try:
+        s1 = ReservaSala("SRV-01", "Sala Innovación", 50.0, capacidad=12, tiene_proyector=True)
+        sistema.agregar_servicio(s1)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 4")
+
+    # [OPERACIÓN 5] Creación correcta de Servicio 2: Alquiler de Equipo (Stock = 1)
+    try:
+        s2 = AlquilerEquipo("SRV-02", "Workstation Dell", 20.0, stock=1, gama="Ultra")
+        sistema.agregar_servicio(s2)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 5")
+
+    # [OPERACIÓN 6] Creación correcta de Servicio 3: Asesoría Especializada
+    try:
+        s3 = AsesoriaEspecializada("SRV-03", "Arquitectura Cloud", 80.0, especialidad="AWS", senior=True)
+        sistema.agregar_servicio(s3)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 6")
+
+    # [OPERACIÓN 7] Creación INCORRECTA de Servicio (Tarifa negativa)
+    try:
+        s_invalido = ReservaSala("SRV-04", "Sala Fantasma", -45.0, capacidad=8)
+        sistema.agregar_servicio(s_invalido)
+    except ErrorSoftwareFJ as e:
+        sistema.logger.registrar_error(e, contexto="Operación 7 - Servicio Inválido")
+        print(f"[ERROR CONTROLADO OP-7] Servicio rechazado: {e}")
+
+
+    # RESERVAS (Exitosas y Fallidas)
+
+    # [OPERACIÓN 8] Reserva EXITOSA de Sala (Confirmada y Procesada)
+    r1 = sistema.crear_reserva("RES-101", "CLI-01", "SRV-01", duracion=4)
+    if r1:
+        sistema.ejecutar_accion_reserva("RES-101", "confirmar")
+        sistema.ejecutar_accion_reserva("RES-101", "procesar")
+
+    # [OPERACIÓN 9] Reserva EXITOSA de Equipo (Agota el único stock al confirmar)
+    r2 = sistema.crear_reserva("RES-102", "CLI-02", "SRV-02", duracion=8)
+    if r2:
+        sistema.ejecutar_accion_reserva("RES-102", "confirmar")
+
+    # [OPERACIÓN 10] Reserva FALLIDA por falta de stock (Dispara excepción encadenada)
+    sistema.crear_reserva("RES-103", "CLI-01", "SRV-02", duracion=6)
+
