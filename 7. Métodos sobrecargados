@@ -1,0 +1,50 @@
+# Métodos sobrecargados (por ejemplo, diferentes variantes del
+cálculo de costos con impuestos, descuentos o parámetros
+opcionales).
+
+
+class Servicio(EntidadSistema, ABC):
+
+    # VARIANTE 1 y 2: Sobrecarga mediante parámetros opcionales (enteros)
+  
+    def calcular_total(
+        self,
+        duracion: int,
+        impuesto: float = 0.19,
+        descuento: float = 0.0,
+        recargo_extra: float = 0.0
+    ) -> float:
+        """
+        Calcula el costo total aceptando:
+        - Solo duración (usa IVA 19% y 0% descuento por defecto).
+        - Duración + parámetros opcionales de impuesto, descuento y recargo.
+        """
+        self.validar_parametros(duracion)
+
+        if not (0.0 <= impuesto <= 1.0):
+            raise DatoInvalidoError("El impuesto debe expresarse entre 0.0 y 1.0 (ej. 0.19).")
+        if not (0.0 <= descuento <= 0.50):
+            raise DatoInvalidoError("El descuento permitido es máximo del 50% (0.50).")
+        if recargo_extra < 0:
+            raise DatoInvalidoError("El recargo extra no puede ser negativo.")
+
+        subtotal = self.calcular_costo_base(duracion) + recargo_extra
+        subtotal_con_descuento = subtotal * (1 - descuento)
+        total_final = subtotal_con_descuento * (1 + impuesto)
+
+        if total_final <= 0:
+            raise CalculoInconsistenteError("Error matemático: el total calculado no es positivo.")
+
+        return round(total_final, 2)
+
+    # VARIANTE 3: Sobrecarga por tipo de dato (recibe un diccionario de facturación)
+    calcular_total.register
+    def _(self, parametros: dict) -> float:
+       
+        if "duracion" not in parametros:
+            raise ParametroFaltanteError("El diccionario de cálculo debe incluir la clave 'duracion'.")
+
+        duracion = parametros["duracion"]
+        impuesto = parametros.get("impuesto", 0.19)
+        descuento = parametros.get("descuento", 0.0)
+        recargo_extra = parametros.get("recargo_extra", 0.0)
