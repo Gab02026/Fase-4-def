@@ -1,0 +1,48 @@
+# el programa simula al
+menos 10 operaciones completas, incluyendo registros válidos e
+inválidos de clientes, creación correcta e incorrecta de servicios, y
+reservas exitosas y fallidas
+
+iniciamos creando primero las excepciones 
+
+El sistema debe ser capaz de manejar errores
+provenientes de datos inválidos, parámetros faltantes, operaciones no
+permitidas, intentos de reserva incorrectos, servicios no disponibles,
+cálculos inconsistentes y cualquier otra situación que pueda
+comprometer la operación normal de la aplicación.
+
+
+class ErrorSistemaFJ(Exception):
+  """Excepción base de datos FJ."""
+  pass
+
+class  DatosinvalidosError(ErrorSistemaFJ):
+ """Para todos los datos que no corespondan en el espacio indicado como en nombre numeros y en telefono letras"""
+  pass
+
+class ParametrosFaltantesError(ErrorSistemaFJ):
+  """Para los espacios que son de caracter obligatorio sin llenar."""
+  pass
+
+class OperacionesNoPermitidasError(ErrorSistemaFJ):
+  """Cuando previamente se reserva y se procesa dos veces."""
+  pass
+
+class IntentosdeReservaIncorecctos(ErrorSistemaFJ):
+  """Cuando se selecciona la fecha sin disponobilidad."""
+  pass
+
+class ServiciosNoDisponible(ErrorSistemaFJ):
+  """Cuando se selecciona una actividad que ya esta ocupada.x"""
+  pass
+
+class CalculosInconsistentes(ErrorSistemaFJ):
+  """Cuando  el total a pagar da resultados no logicos por un servicio (<= 0)."""
+  pass
+  
+
+
+
+
+  
+  
