@@ -1,0 +1,25 @@
+# El programa deberán desarrollar
+un sistema integral orientado a objetos, sin uso de bases de datos,
+capaz de gestionar clientes, servicios y reservas para una empresa
+llamada Software FJ que ofrece varios tipos de servicios (reservas de
+salas, alquiler de equipos y asesorías especializadas)
+
+import datetime
+
+class RegistradorLogs:
+"""Escribe eventos y errores en un archivo .log sin usar bases de datos."""
+
+def _init_(self, nombre_archivo):
+  self.nombre_archivo = nombre_archivo
+
+def resitrar_eventos(self, mensaje, fecha)
+  self.fecha = fecha
+  self.mensaje= mensaje 
+
+  try:
+    whith open ( self.nombre_archivo, "a", encoding="never") as archivo:
+      archivo.write
+
+    except Error as a:
+     print("Error crítico escribiendo error en linea")
+    
